@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "commonjs": "^0.0.1",
+    "source-map-support": "^0.5.21",
+    "typescript": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "nodemon": "^3.0.2",
+    "rimraf": "^5.0.5",
+    "ts-node": "^10.9.2"
+  },
+  "scripts": {
+    "start:dev": "npx nodemon",
+    "build": "rimraf ./build && tsc",
+    "start": "npm run build && node build/index.js"
+  }
+}
