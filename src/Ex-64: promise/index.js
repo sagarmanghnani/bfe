@@ -17,6 +17,7 @@ class MyPromise {
     static reject(value) {
         if(this.registerRejectCallBack.length) {
             const rejectCallback = this.registerRejectCallBack[0];
+            rejectCallback(value);
         } else if(this.registerThenCallBack.length > 1) {
             const rejectCallback = this.registerRejectCallBack[0];
             rejectCallback(value);
@@ -37,10 +38,15 @@ class MyPromise {
 
     then(successCallback, rejectCallback) {
         const newPromiseToReturn = new MyPromise();
+        // this augmentation is done so as to make the chaining, since we are returning new promise
         const augmentedSuccessCallBack = (value) => {
             const newValue = successCallback(value);
-            if(typeof newValue !== MyPromise && newPromiseToReturn.registerThenCallBack.length) {
+            if(!(newValue instanceof MyPromise) && newPromiseToReturn.registerThenCallBack.length) {
                 newPromiseToReturn.registerThenCallBack[0](newValue);
+            } else if(newValue instanceof MyPromise) {
+                newValue.then((value) => {
+                    newPromiseToReturn.registerThenCallBack[0](value);
+                })
             }
         }
         this.registerThenCallBack = [augmentedSuccessCallBack, rejectCallback];
@@ -48,8 +54,9 @@ class MyPromise {
     }
 
     catch(failureCallBack) {
+        const newPromiseToReturn = new MyPromise();
         this.registerRejectCallBack = [failureCallBack];
-        return new MyPromise()
+        return newPromiseToReturn;
     }
     
 }
@@ -60,8 +67,12 @@ const checkPromise = new MyPromise((resolve, reject) => {
         resolve(23);
     }, 1000)
 }).then((value) => {
-    console.log(value, "value passed in then...")
-    return 2 * value;
+    return new MyPromise((resolve, reject) => {
+        setTimeout(() => {
+            console.log("New timeout addedd");
+            resolve();
+        }, 2000);
+    });
 }).then((value) => {
     console.log("Second time calling bhaya....", value);
     return 3 * value;
@@ -71,3 +82,5 @@ const checkPromise = new MyPromise((resolve, reject) => {
 }).then((value) => {
     console.log("final value bhaya", value);
 });
+
+console.log(checkPromise instanceof MyPromise)
